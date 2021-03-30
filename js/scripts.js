@@ -131,6 +131,11 @@ function createModalHTMLElement(index) {
   } = employees[index];
 
   let date = new Date(dob.date);
+  let month =
+    date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
+  let day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
+  let year = date.getFullYear();
+  let formatedDate = `${month}/${day}/${year}`;
 
   let formattedCell = formatCell(cell);
 
@@ -150,7 +155,7 @@ function createModalHTMLElement(index) {
                                   ${city}, 
                                   ${state}
                                   ${postcode}</p>
-            <p class="modal-text">Birthday: ${date.getMonth()}/${date.getDay()}/${date.getFullYear()}</p>
+            <p class="modal-text">Birthday: ${formatedDate}</p>
         </div>
     </div>
 
@@ -231,7 +236,9 @@ function displayModal(index) {
 function createCloseModalListener() {
   let modalCloseButton = document.querySelector(".modal-close-btn");
   modalCloseButton.addEventListener("click", () => {
-    document.querySelector(".modal-container").remove();
+    if (document.querySelector(".modal-container")) {
+      document.querySelector(".modal-container").remove();
+    }
   });
 }
 
