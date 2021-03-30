@@ -1,5 +1,6 @@
 //global variables
 let employees = [];
+let globalIndex;
 const urlAPI = `https://randomuser.me/api/?results=12&nat=au,ca,ch,de,es,gb,ie,nz,us`;
 const searchContarinerEl = document.querySelector(".search-container");
 const galleryEl = document.querySelector("#gallery");
@@ -84,8 +85,8 @@ function appendEmployeHTMLStringToDOM(employees) {
 }
 
 //create modal window when an employee card is clicked
-
-function displayModal(index) {
+////create the the modal element
+function createModalHTMLElement(index) {
   let {
     name,
     dob,
@@ -126,7 +127,44 @@ function displayModal(index) {
     </div>
   </div>
   `;
-  galleryEl.insertAdjacentHTML("afterend", modalHTMLString);
+  return modalHTMLString;
+}
+
+////append modal element to the DOM
+function appendModalToDOM(string) {
+  galleryEl.insertAdjacentHTML("afterend", string);
+  createCloseModalListener();
+  //add event listner to prev and next buttons
+  const nextBtn = document.querySelector("#modal-next");
+  const prevBtn = document.querySelector("#modal-prev");
+  console.log(globalIndex);
+  nextBtn.addEventListener("click", () => {
+    if (globalIndex >= employees.length - 1) {
+      globalIndex = 0;
+      galleryEl.nextElementSibling.remove();
+      displayModal(globalIndex);
+    } else {
+      globalIndex += 1;
+      galleryEl.nextElementSibling.remove();
+      displayModal(globalIndex);
+    }
+  });
+  prevBtn.addEventListener("click", () => {
+    if (globalIndex <= 0) {
+      globalIndex = employees.length - 1;
+      galleryEl.nextElementSibling.remove();
+      displayModal(globalIndex);
+    } else {
+      globalIndex -= 1;
+      galleryEl.nextElementSibling.remove();
+      displayModal(globalIndex);
+    }
+  });
+}
+////display modal
+function displayModal(index) {
+  globalIndex = index;
+  appendModalToDOM(createModalHTMLElement(globalIndex));
 }
 
 ////helper function to format cell numbers
@@ -147,7 +185,7 @@ function formatCell(cellNumber) {
 }
 
 //add close button even listener and remove modal when clicked
-function closeModalListener() {
+function createCloseModalListener() {
   let modalCloseButton = document.querySelector(".modal-close-btn");
   modalCloseButton.addEventListener("click", () => {
     document.querySelector(".modal-container").remove();
@@ -156,15 +194,14 @@ function closeModalListener() {
 
 //listen for click on card elements and display the modal the corresponds with that employee
 galleryEl.addEventListener("click", (e) => {
-  let storedIndex;
   if (e.target !== galleryEl) {
     const card = e.target.closest(".card");
     employees.map((employee, index) => {
       if (card.lastElementChild.children[1].innerText === employee.email) {
-        storedIndex = index;
+        globalIndex = index;
       }
     });
   }
-  displayModal(storedIndex);
-  closeModalListener();
+  displayModal(globalIndex);
+  createCloseModalListener();
 });
