@@ -12,6 +12,28 @@ searchContarinerEl.innerHTML = `
     <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
   </form>
 `;
+//filter employees based on search
+searchContarinerEl.addEventListener("keyup", () => {
+  const searchInput = document.querySelector("#search-input");
+  performSearch(searchInput.value);
+});
+
+function performSearch(input) {
+  let filteredEmployees = [];
+  employees.forEach((employee) => {
+    if (
+      input.length > 0 &&
+      (employee.name.first.toLowerCase().includes(input.toLowerCase()) ||
+        employee.name.last.toLowerCase().includes(input.toLowerCase()))
+    ) {
+      filteredEmployees.push(employee);
+    } else if (input.length === 0) {
+      filteredEmployees.push(employee);
+    }
+  });
+  galleryEl.innerHTML = "";
+  appendEmployeHTMLStringToDOM(filteredEmployees);
+}
 
 //fetch data for 12 random users from randomuser.me and display to page
 fetch(urlAPI)
@@ -22,11 +44,14 @@ fetch(urlAPI)
 
 function displayEmployees(data) {
   employees = data;
-  console.log(employees);
+  appendEmployeHTMLStringToDOM(employees);
+}
 
+//create EmployeeHTMLElement
+function createEmployeeHTMLElement(data) {
   let employeesHTMLString = "";
 
-  employees.forEach((employee) => {
+  data.forEach((employee) => {
     let {
       name,
       email,
@@ -47,7 +72,15 @@ function displayEmployees(data) {
       </div>
     `;
   });
-  galleryEl.insertAdjacentHTML("beforeend", employeesHTMLString);
+  return employeesHTMLString;
+}
+
+//add employee cards to the DOM
+function appendEmployeHTMLStringToDOM(employees) {
+  galleryEl.insertAdjacentHTML(
+    "beforeend",
+    createEmployeeHTMLElement(employees)
+  );
 }
 
 //create modal window when an employee card is clicked
