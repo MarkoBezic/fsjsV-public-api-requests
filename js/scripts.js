@@ -2,9 +2,12 @@
 let employees = [];
 let globalIndex;
 const urlAPI = `https://randomuser.me/api/?results=12&nat=au,ca,ch,de,es,gb,ie,nz,us`;
+const body = document.querySelector("body");
 const searchContarinerEl = document.querySelector(".search-container");
 const galleryEl = document.querySelector("#gallery");
-let cardEls;
+
+//change background color
+body.style.backgroundColor = "lightblue";
 
 //add search element to page
 searchContarinerEl.innerHTML = `
@@ -46,6 +49,13 @@ fetch(urlAPI)
 function displayEmployees(data) {
   employees = data;
   appendEmployeHTMLStringToDOM(employees);
+  let cardEls = document.querySelectorAll(".card");
+  //update styles of card elements
+  cardEls.forEach((card) => {
+    card.lastElementChild.firstElementChild.style.color = "tomato";
+    card.lastElementChild.children[1].style.fontWeight = "700";
+    card.style.boxShadow = "5px 5px 10px";
+  });
 }
 
 //create EmployeeHTMLElement
@@ -85,7 +95,7 @@ function appendEmployeHTMLStringToDOM(employees) {
 }
 
 //create modal window when an employee card is clicked
-////create the the modal element
+////create  and return the the modal element
 function createModalHTMLElement(index) {
   let {
     name,
@@ -134,40 +144,48 @@ function createModalHTMLElement(index) {
 function appendModalToDOM(string) {
   galleryEl.insertAdjacentHTML("afterend", string);
   createCloseModalListener();
+  createNextPrevBtnListeners(globalIndex);
   //add event listner to prev and next buttons
+}
+////create event listener for prev and next buttons
+function createNextPrevBtnListeners(index) {
   const nextBtn = document.querySelector("#modal-next");
   const prevBtn = document.querySelector("#modal-prev");
-  console.log(globalIndex);
   nextBtn.addEventListener("click", () => {
-    if (globalIndex >= employees.length - 1) {
+    if (index >= employees.length - 1) {
       globalIndex = 0;
-      galleryEl.nextElementSibling.remove();
-      displayModal(globalIndex);
+      updateModal(globalIndex);
     } else {
       globalIndex += 1;
-      galleryEl.nextElementSibling.remove();
-      displayModal(globalIndex);
+      updateModal(globalIndex);
     }
   });
   prevBtn.addEventListener("click", () => {
     if (globalIndex <= 0) {
       globalIndex = employees.length - 1;
-      galleryEl.nextElementSibling.remove();
-      displayModal(globalIndex);
+      updateModal(globalIndex);
     } else {
       globalIndex -= 1;
-      galleryEl.nextElementSibling.remove();
-      displayModal(globalIndex);
+      updateModal(globalIndex);
     }
   });
 }
+
+////update modal
+function updateModal(index) {
+  //remove current modal
+  galleryEl.nextElementSibling.remove();
+  //display new modal
+  displayModal(index);
+}
+
 ////display modal
 function displayModal(index) {
   globalIndex = index;
   appendModalToDOM(createModalHTMLElement(globalIndex));
 }
 
-////helper function to format cell numbers
+////format cell numbers
 function formatCell(cellNumber) {
   const cleaned = "" + cellNumber.replace(/\D/g, "");
 
