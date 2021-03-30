@@ -6,22 +6,33 @@ const body = document.querySelector("body");
 const searchContarinerEl = document.querySelector(".search-container");
 const galleryEl = document.querySelector("#gallery");
 
-//change background color
-body.style.backgroundColor = "lightblue";
+/***************************************** 
+Add functioning search element to page
+******************************************/
+function createSearchElement() {
+  appendSearchElementToDOM();
+  addDynamicSearchFunctionality();
+}
 
-//add search element to page
-searchContarinerEl.innerHTML = `
+// adds the search element to the DOM
+function appendSearchElementToDOM() {
+  searchContarinerEl.innerHTML = `
   <form action="#" method="get">
     <input type="search" id="search-input" class="search-input" placeholder="Search...">
     <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
   </form>
 `;
-//filter employees based on search
-searchContarinerEl.addEventListener("keyup", () => {
-  const searchInput = document.querySelector("#search-input");
-  performSearch(searchInput.value);
-});
+}
 
+//filter employees based on search
+function addDynamicSearchFunctionality() {
+  searchContarinerEl.addEventListener("keyup", () => {
+    const searchInput = document.querySelector("#search-input");
+    performSearch(searchInput.value);
+  });
+}
+
+//filter employees based on user input
 function performSearch(input) {
   let filteredEmployees = [];
   employees.forEach((employee) => {
@@ -38,24 +49,32 @@ function performSearch(input) {
   galleryEl.innerHTML = "";
   appendEmployeHTMLStringToDOM(filteredEmployees);
 }
+/***********************************************************************
+Fetch data for 12 random users from randomuser.me and display to page
+************************************************************************/
+function addEmployeesToPage() {
+  fetch(urlAPI)
+    .then((response) => response.json())
+    .then((response) => response.results)
+    .then(displayEmployees)
+    .catch((error) => console.log("something went wrong", error));
 
-//fetch data for 12 random users from randomuser.me and display to page
-fetch(urlAPI)
-  .then((response) => response.json())
-  .then((response) => response.results)
-  .then(displayEmployees)
-  .catch((error) => console.log("something went wrong", error));
+  listenForClicksOnEmployeeCards();
+}
 
+//accept list of employees of add them to the DOM
 function displayEmployees(data) {
   employees = data;
   appendEmployeHTMLStringToDOM(employees);
-  let cardEls = document.querySelectorAll(".card");
-  //update styles of card elements
-  cardEls.forEach((card) => {
-    card.lastElementChild.firstElementChild.style.color = "tomato";
-    card.lastElementChild.children[1].style.fontWeight = "700";
-    card.style.boxShadow = "5px 5px 10px";
-  });
+}
+
+//add employee cards to the DOM
+function appendEmployeHTMLStringToDOM(employees) {
+  galleryEl.insertAdjacentHTML(
+    "beforeend",
+    createEmployeeHTMLElement(employees)
+  );
+  updateEmployeeCardStyles();
 }
 
 //create EmployeeHTMLElement
@@ -86,16 +105,21 @@ function createEmployeeHTMLElement(data) {
   return employeesHTMLString;
 }
 
-//add employee cards to the DOM
-function appendEmployeHTMLStringToDOM(employees) {
-  galleryEl.insertAdjacentHTML(
-    "beforeend",
-    createEmployeeHTMLElement(employees)
-  );
+//update employee card styles
+function updateEmployeeCardStyles() {
+  let cardEls = document.querySelectorAll(".card");
+  //update styles of card elements
+  cardEls.forEach((card) => {
+    card.lastElementChild.firstElementChild.style.color = "tomato";
+    card.lastElementChild.children[1].style.fontWeight = "700";
+    card.style.boxShadow = "5px 5px 10px";
+  });
 }
 
-//create modal window when an employee card is clicked
-////create  and return the the modal element
+/*******************************************************
+Create modal window when an employee card is clicked
+*********************************************************/
+//create  and return the modal element
 function createModalHTMLElement(index) {
   let {
     name,
@@ -140,14 +164,32 @@ function createModalHTMLElement(index) {
   return modalHTMLString;
 }
 
-////append modal element to the DOM
+//format cell numbers
+function formatCell(cellNumber) {
+  const cleaned = "" + cellNumber.replace(/\D/g, "");
+
+  const regex = /^(\d{3})(\d{3})\D*(\d*)$/;
+  let formatCell;
+
+  //if the phone number is greater than 10 digest remove leading zeros
+  if (cleaned.length > 10) {
+    const noLeadingZeros = +cleaned;
+    formattedCell = noLeadingZeros.toString().replace(regex, "($1) $2-$3");
+  } else {
+    formattedCell = cleaned.replace(regex, "($1) $2-$3");
+  }
+  return formattedCell;
+}
+
+//append modal element to the DOM
 function appendModalToDOM(string) {
   galleryEl.insertAdjacentHTML("afterend", string);
   createCloseModalListener();
   createNextPrevBtnListeners(globalIndex);
   //add event listner to prev and next buttons
 }
-////create event listener for prev and next buttons
+
+//create event listener for prev and next buttons
 function createNextPrevBtnListeners(index) {
   const nextBtn = document.querySelector("#modal-next");
   const prevBtn = document.querySelector("#modal-prev");
@@ -171,7 +213,7 @@ function createNextPrevBtnListeners(index) {
   });
 }
 
-////update modal
+//update modal
 function updateModal(index) {
   //remove current modal
   galleryEl.nextElementSibling.remove();
@@ -179,27 +221,10 @@ function updateModal(index) {
   displayModal(index);
 }
 
-////display modal
+//display modal
 function displayModal(index) {
   globalIndex = index;
   appendModalToDOM(createModalHTMLElement(globalIndex));
-}
-
-////format cell numbers
-function formatCell(cellNumber) {
-  const cleaned = "" + cellNumber.replace(/\D/g, "");
-
-  const regex = /^(\d{3})(\d{3})\D*(\d*)$/;
-  let formatCell;
-
-  //if the phone number is greater than 10 digest remove leading zeros
-  if (cleaned.length > 10) {
-    const noLeadingZeros = +cleaned;
-    formattedCell = noLeadingZeros.toString().replace(regex, "($1) $2-$3");
-  } else {
-    formattedCell = cleaned.replace(regex, "($1) $2-$3");
-  }
-  return formattedCell;
 }
 
 //add close button even listener and remove modal when clicked
@@ -211,15 +236,27 @@ function createCloseModalListener() {
 }
 
 //listen for click on card elements and display the modal the corresponds with that employee
-galleryEl.addEventListener("click", (e) => {
-  if (e.target !== galleryEl) {
-    const card = e.target.closest(".card");
-    employees.map((employee, index) => {
-      if (card.lastElementChild.children[1].innerText === employee.email) {
-        globalIndex = index;
-      }
-    });
-  }
-  displayModal(globalIndex);
-  createCloseModalListener();
-});
+function listenForClicksOnEmployeeCards() {
+  galleryEl.addEventListener("click", (e) => {
+    if (e.target !== galleryEl) {
+      const card = e.target.closest(".card");
+      employees.map((employee, index) => {
+        if (card.lastElementChild.children[1].innerText === employee.email) {
+          globalIndex = index;
+        }
+      });
+    }
+    displayModal(globalIndex);
+    createCloseModalListener();
+  });
+}
+
+//load page
+function loadPage() {
+  createSearchElement();
+  addEmployeesToPage();
+  //change background color
+  body.style.backgroundColor = "lightblue";
+}
+
+loadPage();
